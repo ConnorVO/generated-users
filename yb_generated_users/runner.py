@@ -2,6 +2,7 @@ import json
 import re
 from yb_generated_users.helper import add_data
 from yb_generated_users.google_sheets.google_sheets import create_sheets_data
+from yb_generated_users.intrinio.Enums.PortfolioValue import PortfolioValue
 
 from yb_generated_users.intrinio.intrinio import get_tickers_and_prices
 
@@ -88,12 +89,25 @@ def _ask_for_tickers() -> list[int]:
     return ticker_list
 
 
+def _ask_for_portfolio_value() -> PortfolioValue:
+    value_input: str = input(
+        "What is the portfolio value?\n1) Low\n2) Medium\n3) High\n"
+    )
+
+    try:
+        value_int = int(value_input)
+    except:
+        print("Portfolio value should be a 1, 2, or 3")
+        quit()
+
+    return PortfolioValue(value_int)
+
+
 def generate_new_user():
     """This is called to start the process
     Run with => pipenv run python3 -c 'import yb_generated_users.runner; yb_generated_users.runner.generate_new_user()'
     """
     username = _ask_for_username()
-    ticker_list = _ask_for_tickers()
 
     with open("./data/users.json", "r") as f:
         data = json.load(f)
@@ -104,12 +118,26 @@ def generate_new_user():
 
         user = data[username]
 
+    ticker_list = _ask_for_tickers()
+    portfolio_value = _ask_for_portfolio_value()
+
     prices_obj = get_tickers_and_prices(ticker_type_input_list=ticker_list)
-    prices_obj_with_quantity_and_type = add_data(prices_obj=prices_obj)
+    prices_obj_with_quantity_and_type = add_data(
+        prices_obj=prices_obj, portfolio_value=portfolio_value
+    )
 
     all_trades: list[object] = []
     for key in prices_obj_with_quantity_and_type:
         all_trades += prices_obj_with_quantity_and_type[key]
-    all_trades.sort(reverse=True, key=lambda x: x["date"])
 
-    create_sheets_data(sheet_id=user["google_sheets_id"], trades=all_trades)
+    final_trades = []
+    for trade in all_trades:
+        if trade["quantity"] == 0 or trade["price"] == 0:
+            continue
+        # round the dollar values
+        trade["price"] = round(trade["price"], 2)
+        final_trades.append(trade)
+
+    final_trades.sort(reverse=True, key=lambda x: x["date"])
+
+    create_sheets_data(sheet_id=user["google_sheets_id"], trades=final_trades)

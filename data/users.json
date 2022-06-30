@@ -2,5 +2,9 @@
     "nixsoda32": {
         "username": "nixsoda32",
         "google_sheets_id": "1cgP8svWeEks2i53yyjp4dXE-Nhih1-Saz6Gs19zKi1s"
+    },
+    "composer": {
+        "username": "composer",
+        "google_sheets_id": "1VcXR5z6f0N8dqdh_zRjlmzf4MvJJSWDdyFJ3RH7GJVI"
     }
 }

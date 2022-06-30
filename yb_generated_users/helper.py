@@ -1,8 +1,14 @@
 import random
 import math
 
+from yb_generated_users.intrinio.Enums.PortfolioValue import PortfolioValue
 
-def _get_trade_quantity(price: float = 0.0, curr_quantity: int = None):
+
+def _get_trade_quantity(
+    price: float = 0.0,
+    curr_quantity: int = None,
+    portfolio_value: PortfolioValue = PortfolioValue.LOW,
+):
     # this is a sell
     if curr_quantity:
         # get a random quantity that is > 20% of curr quantity and less than 80%
@@ -19,13 +25,19 @@ def _get_trade_quantity(price: float = 0.0, curr_quantity: int = None):
         return rand_quantity * -1
 
     # this is a buy
-    trade_value = random.randint(
-        500, 5000
-    )  # each buy strade can only be between 100 and 6000 total value
+    if portfolio_value.LOW:
+        trade_value = random.randint(50, 2000)
+    elif portfolio_value.MED:
+        trade_value = random.randint(250, 4000)
+    else:
+        trade_value = random.randint(500, 8000)
+
     return math.ceil(trade_value / price)
 
 
-def add_data(prices_obj: object = None) -> object:
+def add_data(
+    prices_obj: object = None, portfolio_value: PortfolioValue = PortfolioValue.LOW
+) -> object:
     for ticker in prices_obj:
         running_num_shares: int = 0
 
@@ -33,7 +45,9 @@ def add_data(prices_obj: object = None) -> object:
 
         # first trade must be a buy
         trades[0]["type"] = "BUY"
-        quantity = _get_trade_quantity(price=trades[0]["price"])
+        quantity = _get_trade_quantity(
+            price=trades[0]["price"], portfolio_value=portfolio_value
+        )
         trades[0]["quantity"] = quantity
         trades[0]["ticker"] = ticker
 

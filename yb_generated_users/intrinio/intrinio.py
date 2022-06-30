@@ -46,7 +46,9 @@ def get_tickers_and_prices(ticker_type_input_list: list[int] = []):
         )
         num_trades = get_random_number_for(type=RandomNumberType.NUM_TRADES_PER_TICKER)
         print(f"Num trades for ticker: {num_trades}")
-        random_sample_of_prices = random.sample(prices, num_trades)
+        random_sample_of_prices = random.sample(
+            prices, num_trades if num_trades <= len(prices) else len(prices)
+        )
         random_sample_of_prices.sort(key=lambda x: x["date"])
         print(f"price_objects for ticker:\n{random_sample_of_prices}")
 
